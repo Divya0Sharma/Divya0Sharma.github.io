@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orchid Hotel Feedback Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #BF40BF; /* Updated to deeper orchid purple */
+            --primary-light: #d373d3;
+            --primary-dark: #a336a3;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-right: 0.75rem;
+        }
+        
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .tagline {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+            max-width: 600px;
+        }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            height: 70vh;
+        }
+        
+        .chat-header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chat-header i {
+            margin-right: 0.5rem;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background-color: #fcf9fc;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            line-height: 1.5;
+        }
+        
+        .bot-message {
+            background: #f1f1f1;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .user-message {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .analysis-result {
+            background: #f5e5f5;
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin-top: 0.5rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+        }
+        
+        .sentiment-positive {
+            color: var(--success);
+            font-weight: 500;
+        }
+        
+        .sentiment-neutral {
+            color: var(--warning);
+            font-weight: 500;
+        }
+        
+        .sentiment-negative {
+            color: var(--danger);
+            font-weight: 500;
+        }
+        
+        .rating-stars {
+            color: #f59e0b;
+            margin: 0.25rem 0;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 1rem;
+            border-top: 1px solid #e2e8f0;
+            background: white;
+        }
+        
+        .chat-input textarea {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            resize: none;
+            font-family: inherit;
+            outline: none;
+            transition: border 0.2s;
+        }
+        
+        .chat-input textarea:focus {
+            border-color: var(--primary);
+        }
+        
+        .send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 1.5rem;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .send-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .loading-dots {
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .loading-dots span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--gray);
+            margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .loading-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        .loading-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { 
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+        
+        .api-settings {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .api-settings h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        .api-input-group {
+            margin-bottom: 1rem;
+        }
+        
+        .api-input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .api-input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+        
+        .save-settings {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .chat-container {
+                height: 80vh;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <i class="fas fa-hotel logo-icon"></i>
+                <div class="logo-text">Orchid Hotel Feedback AI</div>
+            </div>
+            <p class="tagline">Analyze guest feedback to improve your hotel's service quality and guest satisfaction</p>
+        </header>
+        
+        <div class="chat-container">
+            <div class="chat-header">
+                <i class="fas fa-concierge-bell"></i>
+                Hotel Guest Feedback Assistant
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot-message">
+                    Welcome to Orchid Hotel Feedback Analyzer! I specialize in analyzing hotel guest feedback.
+                    <div class="analysis-result">
+                        <strong>Please provide:</strong><br>
+                        - Guest reviews<br>
+                        - Survey responses<br>
+                        - Comments about hotel services<br>
+                        - Any feedback about your property
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <textarea id="user-input" placeholder="Paste hotel guest feedback here..." rows="2"></textarea>
+                <button class="send-btn" id="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="api-settings">
+            <h3><i class="fas fa-cog"></i> DeepSeek API Configuration</h3>
+            <div class="api-input-group">
+                <label for="api-key">DeepSeek API Key</label>
+                <input type="password" id="api-key" placeholder="Enter your DeepSeek API key">
+            </div>
+            <div class="api-input-group">
+                <label for="api-model">Model</label>
+                <input type="text" id="api-model" value="deepseek-chat" placeholder="deepseek model name">
+            </div>
+            <button class="save-settings" id="save-settings">Save Settings</button>
+        </div>
+        
+        <footer>
+            © 2023 Orchid Hotel Feedback AI. Helping you deliver exceptional guest experiences.
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chat-messages');
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const saveSettingsBtn = document.getElementById('save-settings');
+            
+            // API Configuration
+            let apiConfig = {
+                apiKey: '',
+                model: 'deepseek-chat'
+            };
+            
+            // Load saved settings
+            if (localStorage.getItem('orchidHotelFeedbackConfig')) {
+                apiConfig = JSON.parse(localStorage.getItem('orchidHotelFeedbackConfig'));
+                document.getElementById('api-key').value = apiConfig.apiKey;
+                document.getElementById('api-model').value = apiConfig.model;
+            }
+            
+            // Save settings
+            saveSettingsBtn.addEventListener('click', function() {
+                apiConfig = {
+                    apiKey: document.getElementById('api-key').value,
+                    model: document.getElementById('api-model').value || 'deepseek-chat'
+                };
+                
+                localStorage.setItem('orchidHotelFeedbackConfig', JSON.stringify(apiConfig));
+                addMessage('DeepSeek API settings saved successfully!', 'bot');
+            });
+            
+            // Chat functionality
+            sendBtn.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            async function sendMessage() {
+                const message = userInput.value.trim();
+                if (message === '') return;
+                
+                // Add user message to chat
+                addMessage(message, 'user');
+                userInput.value = '';
+                
+                // Show loading indicator
+                const loadingId = showLoading();
+                
+                try {
+                    // Check if message is within scope
+                    if (!isHotelFeedback(message)) {
+                        removeLoading(loadingId);
+                        addMessage("This appears to be outside my scope. I specialize in analyzing hotel guest feedback about rooms, service, amenities, etc. Please provide feedback related to hotel stays.", 'bot');
+                        return;
+                    }
+                    
+                    // Process with DeepSeek API
+                    const response = await analyzeWithDeepSeek(message);
+                    removeLoading(loadingId);
+                    addMessage(response, 'bot');
+                } catch (error) {
+                    removeLoading(loadingId);
+                    addMessage("Sorry, I encountered an error processing your feedback. Please check your API settings and try again.", 'bot');
+                    console.error("API Error:", error);
+                }
+            }
+            
+            function showLoading() {
+                const loadingId = "loading-" + Date.now();
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = loadingId;
+                loadingDiv.classList.add('message', 'bot-message');
+                loadingDiv.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+                chatMessages.appendChild(loadingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                return loadingId;
+            }
+            
+            function removeLoading(id) {
+                const loadingElement = document.getElementById(id);
+                if (loadingElement) {
+                    loadingElement.remove();
+                }
+            }
+            
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+                messageDiv.innerHTML = text;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            function isHotelFeedback(text) {
+                // Basic check for hotel-related keywords
+                const hotelKeywords = [
+                    'hotel', 'room', 'stay', 'guest', 'reception', 'lobby',
+                    'check-in', 'check-out', 'reservation', 'amenities',
+                    'housekeeping', 'concierge', 'front desk', 'bellhop',
+                    'maid', 'suite', 'dining', 'restaurant', 'breakfast',
+                    'pool', 'gym', 'spa', 'service', 'staff', 'cleanliness',
+                    'comfort', 'noise', 'view', 'bed', 'pillow', 'shower',
+                    'toiletries', 'minibar', 'tv', 'wifi', 'air conditioning'
+                ];
+                
+                const lowerText = text.toLowerCase();
+                return hotelKeywords.some(keyword => lowerText.includes(keyword));
+            }
+            
+            async function analyzeWithDeepSeek(feedback) {
+                // Validate API configuration
+                if (!apiConfig.apiKey) {
+                    throw new Error("DeepSeek API key not configured");
+                }
+                
+                // Prepare the prompt for hotel feedback analysis
+                const prompt = `You are a hotel guest feedback analysis assistant for Orchid Hotel. Analyze the following feedback and provide:
+                1. Overall sentiment (Positive, Negative, or Mixed)
+                2. Key themes mentioned (e.g., room cleanliness, staff behavior, amenities)
+                3. Specific praises or complaints
+                4. Actionable recommendations for improvement
+                
+                Format your response in HTML with these sections:
+                - <strong>Analysis Results:</strong> (header)
+                - <strong>Overall Sentiment:</strong> with sentiment class (positive/negative/neutral)
+                - <strong>Key Themes:</strong> as bullet points
+                - <strong>Positive Aspects:</strong> if any
+                - <strong>Areas for Improvement:</strong> if any
+                - <strong>Recommendations:</strong> as numbered list
+                
+                Guest Feedback: "${feedback}"`;
+                
+                try {
+                    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiConfig.apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: apiConfig.model,
+                            messages: [
+                                {
+                                    role: "system",
+                                    content: "You are an expert hotel feedback analyzer for Orchid Hotel. Provide detailed, professional analysis of guest feedback with actionable insights."
+                                },
+                                {
+                                    role: "user",
+                                    content: prompt
+                                }
+                            ],
+                            temperature: 0.7,
+                            max_tokens: 1000
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    return data.choices[0].message.content;
+                } catch (error) {
+                    console.error("DeepSeek API Error:", error);
+                    throw error;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
